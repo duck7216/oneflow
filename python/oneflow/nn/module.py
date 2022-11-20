@@ -1235,7 +1235,11 @@ class Module(object):
             return t.to_global(placement=placement, sbp=sbp)
 
         return self._apply(convert)
-
+        
+    def npu_convert(self):
+        for module in self.children():
+            module.npu_convert()
+    
     def cpu(self: T) -> T:
         r"""
         cpu()

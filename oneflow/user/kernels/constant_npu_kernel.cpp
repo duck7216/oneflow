@@ -61,7 +61,12 @@ class ConstantNpuKernel final : public OpKernel {
         npu_command.Run()
                 .Realease();   
     }
-    
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // if(getenv("ASCEND_DEBUG")){
+    //   long int target = 0x108110379800;
+    //   std::cout<<"Constant Target Value"<<std::endl;
+    //   PrintResult(reinterpret_cast<void*>(target), 100, "float");
+    // }
   }
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };

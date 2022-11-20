@@ -38,15 +38,23 @@ class LayerNormNpuKernel final : public user_op::OpKernel {
     CHECK_EQ(ctx->has_input("gamma", 0), 1); 
     CHECK_EQ(ctx->has_input("beta", 0), 1); 
     user_op::Tensor* gamma = ctx->Tensor4ArgNameAndIndex("gamma", 0);
-    CHECK_EQ(gamma->shape_view().elem_cnt(), norm_size);
+    // CHECK_EQ(gamma->shape_view().elem_cnt(), norm_size);
     user_op::Tensor* beta = ctx->Tensor4ArgNameAndIndex("beta", 0);
+  
+    DimVector beta_shape_dim_v;
+    beta->shape_view().ToDimVector(&beta_shape_dim_v);
+    std::vector<int64_t> extra_shape_vector;
+    for(auto beta_shape: beta_shape_dim_v){
+      extra_shape_vector.push_back(beta_shape/2);
+    }
+
     int64_t begin_norm_axis = ctx->Attr<int64_t>("begin_norm_axis");
     int64_t begin_params_axis = ctx->Attr<int64_t>("begin_params_axis");
     NpuCommand npu_command;
     npu_command.OpName("LayerNorm")
             .Input(x)
-            .Input(gamma)
-            .Input(beta)
+            .InputWithShape(gamma, extra_shape_vector)
+            .InputWithShape(beta, extra_shape_vector)
             .Output(y)
             .Output(mean)
             .Output(inv_variance)
@@ -57,6 +65,15 @@ class LayerNormNpuKernel final : public user_op::OpKernel {
             .Check();
     npu_command.Run()
             .Realease();
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // std::cout<<"LayerNorm inv_variance "<<inv_variance->shape_view().ToString()<<" "<<inv_variance->data_type()<<std::endl;
+    // PrintResult(inv_variance);
+    // std::cout<<"LayerNorm mean "<<mean->shape_view().ToString()<<" "<<mean->data_type()<<std::endl;
+    // PrintResult(mean);
+    // std::cout<<"LayerNorm x "<<x->shape_view().ToString()<<" "<<x->data_type()<<std::endl;
+    // PrintResult(x);
+    // std::cout<<"LayerNorm gamma "<<x->shape_view().ToString()<<" "<<x->data_type()<<std::endl;
+    // PrintResult(gamma);
   };
 };
 
@@ -103,20 +120,55 @@ class LayerNormGradNpuKernel final : public user_op::OpKernel {
     std::vector<int64_t> var_shape_vector = {var_shape_dim_v.begin(), var_shape_dim_v.end()};
     var_shape_vector.push_back(1);
 
+    DimVector beta_diff_shape_dim_v;
+    beta_diff->shape_view().ToDimVector(&beta_diff_shape_dim_v);
+    std::vector<int64_t> extra_shape_vector;
+    for(auto beta_diff_shape: beta_diff_shape_dim_v){
+      extra_shape_vector.push_back(beta_diff_shape/2);
+    }
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // if(getenv("ASCEND_DEBUG")){
+    //   long int target = 0x108110379800;
+    //   std::cout<<"LayerNormGrad Target Value Before"<<std::endl;
+    //   PrintResult(reinterpret_cast<void*>(target), 100, "float");
+    // }
+    std::cout<<"-------------------------------------------------------------"<<std::endl;
+    std::cout<<"LayerNormGrad dy "<<dy->shape_view().ToString()<<" "<<dy->data_type()<<std::endl;
+    PrintResult(dy);
+    // std::cout<<"LayerNormGrad x "<<x->shape_view().ToString()<<" "<<x->data_type()<<std::endl;
+    // PrintResult(x);
+    // std::cout<<"LayerNormGrad inv_variance "<<inv_variance->shape_view().ToString()<<" "<<inv_variance->data_type()<<std::endl;
+    // PrintResult(inv_variance);
+    // std::cout<<"LayerNormGrad mean "<<mean->shape_view().ToString()<<" "<<mean->data_type()<<std::endl;
+    // PrintResult(mean);
+    // std::cout<<"LayerNormGrad gamma "<<gamma->shape_view().ToString()<<" "<<gamma->data_type()<<std::endl;
+    // PrintResult(gamma);
     NpuCommand npu_command;
     npu_command.OpName("LayerNormGrad")
             .Input(dy)
             .Input(x)
             .InputWithShape(inv_variance, mean_shape_vector)
             .InputWithShape(mean, var_shape_vector)
-            .Input(gamma)
+            .InputWithShape(gamma, extra_shape_vector)
             .Output(dx)
-            .Output(gamma_diff)
-            .Output(beta_diff)
+            .OutputWithShape(gamma_diff, extra_shape_vector)
+            .OutputWithShape(beta_diff, extra_shape_vector)
             .Stream(ctx->stream()->As<ep::NpuStream>()->npu_stream())
             .Check();
     npu_command.Run()
             .Realease();
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // std::cout<<"LayerNormGrad dx"<<std::endl;
+    // PrintResult(dx);
+    // std::cout<<"LayerNormGrad gamma_diff"<<gamma_diff->shape_view().ToString()<<" "<<gamma_diff->data_type()<<std::endl;
+    // PrintResult(gamma_diff); 
+    // std::cout<<"LayerNormGrad beta_diff"<<beta_diff->shape_view().ToString()<<" "<<beta_diff->data_type()<<std::endl;
+    // PrintResult(beta_diff); 
+    // if(getenv("ASCEND_DEBUG")){
+    //   long int target = 0x108110379800;
+    //   std::cout<<"LayerNormGrad Target Value After"<<std::endl;
+    //   PrintResult(reinterpret_cast<void*>(target), 100, "float");
+    // }
   };
 };
 

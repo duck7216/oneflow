@@ -36,7 +36,12 @@ Shape InferBnParamShape(const Shape& x_shape, const int64_t begin_norm_axis) {
 }
 
 oneflow::DataType InferBnParamDataType(const DataType x_data_type) {
-  return (x_data_type == DataType::kFloat16 || x_data_type == DataType::kBFloat16)
+  // return (x_data_type == DataType::kFloat16 || x_data_type == DataType::kBFloat16)
+  //            ? DataType::kFloat
+  //            : x_data_type;
+  // dck_caution_here
+  // When input using float16, CANN requires mean and var be float16 too.
+  return (x_data_type == DataType::kBFloat16)
              ? DataType::kFloat
              : x_data_type;
 }
@@ -61,11 +66,13 @@ oneflow::DataType InferBnParamDataType(const DataType x_data_type) {
   const Shape param_shape(param_shape_dim_vec);
   if (center) {
     const user_op::TensorDesc& beta = ctx->InputTensorDesc("beta", 0);
-    CHECK_EQ_OR_RETURN(beta.shape(), param_shape);
+    // dck_caution_here : cancel shape check for beta
+    // CHECK_EQ_OR_RETURN(beta.shape(), param_shape);
   }
   if (scale) {
     const user_op::TensorDesc& gamma = ctx->InputTensorDesc("gamma", 0);
-    CHECK_EQ_OR_RETURN(gamma.shape(), param_shape);
+    // dck_caution_here : cancel shape check for gamma
+    // CHECK_EQ_OR_RETURN(gamma.shape(), param_shape);
   }
   const int64_t begin_norm_axis =
       ShiftNegativeAxisIfNeed(x.shape(), ctx->Attr<int64_t>("begin_norm_axis"));
@@ -263,6 +270,7 @@ oneflow::DataType InferBnParamDataType(const DataType x_data_type) {
 
 
 /* static */ Maybe<void> LayerNormNpuGradOp::InferLogicalTensorDesc(user_op::InferContext* ctx) {
+  // InferShape in InferDataType
   return Maybe<void>::Ok();
 }
 
@@ -299,13 +307,18 @@ oneflow::DataType InferBnParamDataType(const DataType x_data_type) {
   user_op::TensorDesc* dx = ctx->MutOutputTensorDesc("dx", 0);
   dx->set_data_type(dy.data_type());
   dx->set_shape(dy.shape());
+  // dck_caution_here : change beta_diff's shape to meet beta'shape
+  DimVector extra_shape_dim_vec;
+  for(int param:param_shape_dim_vec){
+    extra_shape_dim_vec.push_back(2*param);
+  }
+  const Shape extra_shape(extra_shape_dim_vec);
   user_op::TensorDesc* gamma_diff = ctx->MutOutputTensorDesc("gamma_diff", 0);
-  gamma_diff->set_shape(param_shape);
+  gamma_diff->set_shape(extra_shape);
   gamma_diff->set_data_type(dy.data_type());
   user_op::TensorDesc* beta_diff = ctx->MutOutputTensorDesc("beta_diff", 0);
+  beta_diff->set_shape(extra_shape);
   beta_diff->set_data_type(dy.data_type());
-  beta_diff->set_shape(param_shape);
-
   return Maybe<void>::Ok();
 }
 

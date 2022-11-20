@@ -53,9 +53,14 @@ class AddNNpuKernel : public OpKernel {
                .Check();
     npu_command.Run()
                .Realease();
-    //OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));   
-    //PrintResult(out);
-    //std::cout<<"AddN Execute Over"<<std::endl; 
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));   
+    // if(getenv("ASCEND_DEBUG")){
+    //   long int target = 0x108110379800;
+    //   std::cout<<"AddN Target Value"<<std::endl;
+    //   PrintResult(reinterpret_cast<void*>(target), 100, "float");
+    // }
+    // PrintResult(out);
+    // std::cout<<"AddN Execute Over"<<std::endl; 
   }
 };
 

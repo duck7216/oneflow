@@ -109,8 +109,15 @@ Maybe<void> EagerBlobObject::TryAllocateBlobBodyMemory(vm::Allocator* allocator)
     CHECK_GE_OR_RETURN(tensor_storage_->blob_bytes(), ByteSizeOfBlobBody())
         << "This blob has been allocated memory, but less than needed space.";
   } else {
+    // dck_caution_here: debug from here
     char* dptr = nullptr;
     JUST(allocator->Allocate(&dptr, required_body_bytes));
+    // std::cout<<"Allocate "<<(void*)dptr<<" "<<(void*)(dptr+required_body_bytes)<<this->shape_view().ToString()<<" "<<required_body_bytes<<std::endl;
+    // if(reinterpret_cast<long int>(dptr)==0x108110379800){
+    //   char* env_string = (char*)"ASCEND_DEBUG=1";
+    //   putenv(env_string);
+    // }
+
     // reset tensor_storage_;
     const auto& Free = [allocator, required_body_bytes](char* dptr) {
       if (IsShuttingDown()) { return; }

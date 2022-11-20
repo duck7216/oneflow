@@ -322,7 +322,12 @@ class LayerNorm(Module):
         return "{normalized_shape}, eps={eps}, elementwise_affine={elementwise_affine}".format(
             **self.__dict__
         )
-
+    #  dck_caution_here : fuck CANN
+    def npu_convert(self):
+        zeros = flow.zeros_like(self.bias)
+        self.weight = flow.nn.Parameter(flow.concat((self.weight, zeros)))
+        self.bias = flow.nn.Parameter(flow.concat((self.bias, zeros)))
+        
 
 class RMSLayerNorm(Module):
     """

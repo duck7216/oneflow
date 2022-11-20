@@ -97,6 +97,7 @@ class EagerHcclBroadcastKernel final : public user_op::OpKernel {
     OF_HCCL_CHECK(HcclBroadcast(out->mut_dptr(), out->shape_view().elem_cnt(),
                                 GetHcclDataType(out->data_type()), hccl_root, kernel_cache->comm(),
                                 ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
   };
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };
@@ -131,7 +132,7 @@ class EagerHcclAllReduceKernel final : public user_op::OpKernel {
     OF_HCCL_CHECK(HcclAllReduce(in->mut_dptr(), out->mut_dptr(), in->shape_view().elem_cnt(),
                                 GetHcclDataType(in->data_type()), reduce_type, kernel_cache->comm(),
                                 ctx->stream()->As<ep::NpuStream>()->npu_stream()));
-
+    OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
   };
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };

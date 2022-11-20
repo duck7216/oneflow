@@ -235,6 +235,7 @@ public:
                         std::string real_type = "");
     NpuCommand& Output(AclTensorWrapper& wrap);
     NpuCommand& Output(MaxPoolTensorWrapper& wrap);
+    NpuCommand& OutputWithShape(user_op::Tensor* output, std::vector<int64_t> real_shape);
     NpuCommand& Output();
 
     NpuCommand& Attr(std::string &&name, std::vector<int32_t> v);

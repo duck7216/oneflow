@@ -78,9 +78,12 @@ struct OpCallInstructionUtil final {
   static inline Maybe<void> AllocateOutputBlobsMemory(
       OpCallInstructionPolicy* op_call_instruction_policy, Allocator* allocator) {
     OF_PROFILER_RANGE_GUARD("AllocateOutputBlobsMemory");
+    // dck_caution_here: debug from here
+    // std::cout<<"--->"<<op_call_instruction_policy->opkernel().op_type_name() + ":OpCall"<<std::endl;
     for (const auto& blob_object : op_call_instruction_policy->outputs()) {
       JUST(blob_object->TryAllocateBlobBodyMemory(allocator));
     }
+    // std::cout<<"--->"<<op_call_instruction_policy->opkernel().op_type_name() + ":Over"<<std::endl;
     return Maybe<void>::Ok();
   }
 

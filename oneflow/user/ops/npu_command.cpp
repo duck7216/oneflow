@@ -5,40 +5,36 @@
 #include "oneflow/user/ops/npu_command.h"
 #include "oneflow/core/device/npu_util.h"
 
-namespace oneflow
-{
+namespace oneflow{
+
 std::unordered_map<std::string, std::vector<int>> const_tensor_map = {};
 std::unordered_map<std::string, std::vector<int64_t>> shape_map = {};
-void testblock()
-{
+void testblock(){
   int a = 1;
   return;
 }
 
-std::string ShapeToString(std::vector<int64_t> & v)
-{
+std::string ShapeToString(std::vector<int64_t> & v){
     std::string r = "";
-    for(int64_t shape: v)
-    {
-        r += std::to_string(shape)+',';
-    }
-    return r;
-}
-std::string ShapeToString(std::vector<int> & v)
-{
-    std::string r = "";
-    for(int shape: v)
-    {
+    for(int64_t shape: v){
         r += std::to_string(shape)+',';
     }
     return r;
 }
 
-aclDataType dataTypeMap(DataType type)
-{
+std::string ShapeToString(std::vector<int> & v){
+    std::string r = "";
+    for(int shape: v){
+        r += std::to_string(shape)+',';
+    }
+    return r;
+}
+
+aclDataType dataTypeMap(DataType type){
     if(datatype_map.find(type)!=datatype_map.end()) return datatype_map[type];
     return ACL_DT_UNDEFINED;
 }
+
 #define PRINT_HOSTBUFFER(type)      type *outdata = reinterpret_cast<type*>(hostBuffer);\
         for(int i=0;i<100;++i) {std::cout<<outdata[i]<<" ";}
 
@@ -327,16 +323,15 @@ NpuCommand& NpuCommand::Input(HostTensorWrapper& wrap)
     return *this;     
 }
 
-NpuCommand& NpuCommand::Input(std::string key, int64_t len, aclDataType type)
-{
+NpuCommand& NpuCommand::Input(std::string key, int64_t len, aclDataType type){
     aclTensorDesc* desc = getTensorDesc(key, len, type);
     OF_NPU_CHECK(aclSetTensorPlaceMent(desc, ACL_MEMTYPE_HOST));
     command_param.in_descs.push_back(desc);
     command_param.in_buffers.push_back(aclCreateDataBuffer(const_tensor_map[key].data(), len*sizeof(int)));
     return *this;
 }
-NpuCommand& NpuCommand::Output(user_op::Tensor* output, std::string format, std::string desc_name, std::string real_type)
-{
+
+NpuCommand& NpuCommand::Output(user_op::Tensor* output, std::string format, std::string desc_name, std::string real_type){
     // generate DataBuffer
     command_param.out_buffers.push_back(getDataBuffer(output));
     // generate TensorDesc
@@ -345,29 +340,48 @@ NpuCommand& NpuCommand::Output(user_op::Tensor* output, std::string format, std:
     if(desc_name != "") aclSetTensorDescName(desc, desc_name.c_str());
     return *this;
 }
-NpuCommand& NpuCommand::Output(AclTensorWrapper& wrap)
-{
+
+NpuCommand& NpuCommand::Output(AclTensorWrapper& wrap){
     // generate DataBuffer
     command_param.out_buffers.push_back(getDataBuffer(wrap));
     // generate TensorDesc
     command_param.out_descs.push_back(getTensorDesc(wrap));
     return *this;    
 }
-NpuCommand& NpuCommand::Output(MaxPoolTensorWrapper& wrap)
-{
+
+NpuCommand& NpuCommand::Output(MaxPoolTensorWrapper& wrap){
     // generate DataBuffer
     command_param.out_buffers.push_back(getDataBuffer(wrap));
     // generate TensorDesc
     command_param.out_descs.push_back(getTensorDesc(wrap));
     return *this;    
 }
-NpuCommand& NpuCommand::Output()
-{
+
+NpuCommand& NpuCommand::Output(){
     command_param.out_descs.push_back(
                             aclCreateTensorDesc(ACL_DT_UNDEFINED, 0, nullptr, ACL_FORMAT_UNDEFINED));
     return *this;
     
 }
+
+NpuCommand& NpuCommand::OutputWithShape(user_op::Tensor* output, std::vector<int64_t> real_shape){
+    // generate DataBuffer
+    aclDataBuffer* data_buffer = aclCreateDataBuffer(output->mut_dptr<void>(), 
+                                                mulVector(real_shape) * GetSizeOfDataType(output->data_type())); 
+    NOT_NULLPTR_CHECK(data_buffer);
+    command_param.out_buffers.push_back(data_buffer);
+    // generate TensorDesc
+
+    aclDataType datatype = dataTypeMap(output->data_type());
+    aclTensorDesc* descCast = aclCreateTensorDesc(datatype, 
+                                    real_shape.size(), 
+                                    real_shape.data(), 
+                                    format_map["channels_nd"]);
+    NOT_NULLPTR_CHECK(descCast);  
+    command_param.out_descs.push_back(descCast);
+    return *this;
+}
+
 NpuCommand& NpuCommand::Attr(std::string &&name, std::vector<int32_t> v)
 {
     std::vector<int64_t> temp;

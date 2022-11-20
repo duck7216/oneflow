@@ -97,11 +97,42 @@ class BatchMatmulNpuKernel final : public user_op::OpKernel {
     if (ctx->has_input("_add_to_output", 0)) {
       UNIMPLEMENTED();
     }
+    // if (trans_a || trans_b) {
+    //   std::cout<<a->shape_view().ToString()<<"|"<<b->shape_view().ToString()<<std::endl;
+    //   UNIMPLEMENTED();
+    // }
+    DimVector a_shape_dim_v;
+    a->shape_view().ToDimVector(&a_shape_dim_v);
+    size_t a_len = a_shape_dim_v.size();
+    int64_t a_first = 1;
+    for(int i=0; i<a_len-2; ++i){
+      a_first *= a_shape_dim_v.at(i);
+    }
+    std::vector<int64_t> a_shape_vector = {a_first, a_shape_dim_v.at(a_len-2), a_shape_dim_v.at(a_len-1)};
+
+    DimVector b_shape_dim_v;
+    b->shape_view().ToDimVector(&b_shape_dim_v);
+    size_t b_len = b_shape_dim_v.size();
+    int64_t b_first = 1;
+    for(int i=0; i<b_len-2; ++i){
+      b_first *= b_shape_dim_v.at(i);
+    }
+    std::vector<int64_t> b_shape_vector = {b_first, b_shape_dim_v.at(b_len-2), b_shape_dim_v.at(b_len-1)};
+
+    DimVector out_shape_dim_v;
+    out->shape_view().ToDimVector(&out_shape_dim_v);
+    size_t out_len = out_shape_dim_v.size();
+    int64_t out_first = 1;
+    for(int i=0; i<out_len-2; ++i){
+      out_first *= out_shape_dim_v.at(i);
+    }
+    std::vector<int64_t> out_shape_vector = {out_first, out_shape_dim_v.at(out_len-2), out_shape_dim_v.at(out_len-1)};
+
     NpuCommand npu_command;
     npu_command.OpName("BatchMatMul")
-               .Input(a, "channels_nd")
-               .Input(b, "channels_nd")
-               .Output(out, "channels_nd")
+               .InputWithShape(a, a_shape_vector)
+               .InputWithShape(b, b_shape_vector)
+               .OutputWithShape(out, out_shape_vector)
                .Attr("adj_x1", trans_a)
                .Attr("adj_x2", trans_b)
                .Stream(ctx->stream()->As<ep::NpuStream>()->npu_stream())
