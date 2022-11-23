@@ -45,7 +45,7 @@ class LayerNormNpuKernel final : public user_op::OpKernel {
     beta->shape_view().ToDimVector(&beta_shape_dim_v);
     std::vector<int64_t> extra_shape_vector;
     for(auto beta_shape: beta_shape_dim_v){
-      extra_shape_vector.push_back(beta_shape/2);
+      extra_shape_vector.push_back(beta_shape-32);
     }
 
     int64_t begin_norm_axis = ctx->Attr<int64_t>("begin_norm_axis");
@@ -124,7 +124,7 @@ class LayerNormGradNpuKernel final : public user_op::OpKernel {
     beta_diff->shape_view().ToDimVector(&beta_diff_shape_dim_v);
     std::vector<int64_t> extra_shape_vector;
     for(auto beta_diff_shape: beta_diff_shape_dim_v){
-      extra_shape_vector.push_back(beta_diff_shape/2);
+      extra_shape_vector.push_back(beta_diff_shape-32);
     }
     // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
     // if(getenv("ASCEND_DEBUG")){
@@ -132,9 +132,9 @@ class LayerNormGradNpuKernel final : public user_op::OpKernel {
     //   std::cout<<"LayerNormGrad Target Value Before"<<std::endl;
     //   PrintResult(reinterpret_cast<void*>(target), 100, "float");
     // }
-    std::cout<<"-------------------------------------------------------------"<<std::endl;
-    std::cout<<"LayerNormGrad dy "<<dy->shape_view().ToString()<<" "<<dy->data_type()<<std::endl;
-    PrintResult(dy);
+    // std::cout<<"-------------------------------------------------------------"<<std::endl;
+    // std::cout<<"LayerNormGrad dy "<<dy->shape_view().ToString()<<" "<<dy->data_type()<<std::endl;
+    // PrintResult(dy);
     // std::cout<<"LayerNormGrad x "<<x->shape_view().ToString()<<" "<<x->data_type()<<std::endl;
     // PrintResult(x);
     // std::cout<<"LayerNormGrad inv_variance "<<inv_variance->shape_view().ToString()<<" "<<inv_variance->data_type()<<std::endl;

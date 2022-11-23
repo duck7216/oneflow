@@ -74,6 +74,8 @@ class ToContiguousNpuKernel final : public user_op::OpKernel {
     }
     // std::cout<<"ToContiguous "<<ShapeToString(RealShape)<<std::endl;
     // std::cout<<"ToContiguous stride"<<ShapeToString(in_stride)<<std::endl;
+    // std::cout<<"ToContiguous in"<<std::endl;
+    // PrintResult(in);
     NpuCommand npu_command;
     npu_command.OpName("AsStrided")
                .InputWithShape(in, RealShape)

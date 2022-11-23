@@ -23,5 +23,5 @@ from oneflow.nn.optimizer.lamb import LAMB
 from oneflow.nn.optimizer.adadelta import Adadelta
 
 from oneflow.nn.optimizer.torch_sgd import TORCH_SGD
-
+from oneflow.nn.optimizer.add_direct import ADD_DIRECT
 from . import lr_scheduler

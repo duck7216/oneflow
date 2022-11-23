@@ -310,7 +310,7 @@ oneflow::DataType InferBnParamDataType(const DataType x_data_type) {
   // dck_caution_here : change beta_diff's shape to meet beta'shape
   DimVector extra_shape_dim_vec;
   for(int param:param_shape_dim_vec){
-    extra_shape_dim_vec.push_back(2*param);
+    extra_shape_dim_vec.push_back(param+32);
   }
   const Shape extra_shape(extra_shape_dim_vec);
   user_op::TensorDesc* gamma_diff = ctx->MutOutputTensorDesc("gamma_diff", 0);

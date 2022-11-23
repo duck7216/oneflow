@@ -324,7 +324,7 @@ class LayerNorm(Module):
         )
     #  dck_caution_here : fuck CANN
     def npu_convert(self):
-        zeros = flow.zeros_like(self.bias)
+        zeros = flow.zeros([32]).to(self.bias.dtype)
         self.weight = flow.nn.Parameter(flow.concat((self.weight, zeros)))
         self.bias = flow.nn.Parameter(flow.concat((self.bias, zeros)))
         
