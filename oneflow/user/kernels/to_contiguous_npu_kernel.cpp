@@ -25,6 +25,30 @@ namespace oneflow {
 
 namespace {
 
+std::vector<int64_t> MapShape(std::vector<int>& out_shape){
+  if(out_shape.size()==4){
+    if(out_shape[1]==12 && out_shape[2]==384 && out_shape[3]==64){
+      // [4, 384, 12, 64] -> [4, 12, 384, 64]
+      return {out_shape[0], 384, 12, 64};
+    }
+    else if(out_shape[1]==12 && out_shape[2]==64 && out_shape[3]==384){
+      // [4, 12, 384, 64] -> [4, 12, 64, 384]
+      return {out_shape[0], 12, 384, 64};
+    }
+    else if(out_shape[1]==384 && out_shape[2]==12 && out_shape[3]==64){
+      // [4, 12, 384, 64] -> [4, 384, 12, 64]
+      return {out_shape[0], 12, 384, 64};
+    }
+  }
+  std::cout<<"-------------------------"<<std::endl;
+  for(int s:out_shape){
+    std::cout<<s<<" ";
+  }
+  std::cout<<std::endl;
+  UNIMPLEMENTED();
+  return {};
+}
+
 template<typename T>
 class ToContiguousNpuKernel final : public user_op::OpKernel {
  public:
@@ -48,8 +72,7 @@ class ToContiguousNpuKernel final : public user_op::OpKernel {
     DimVector shape_dim_v;
     out_shape.ToDimVector(&shape_dim_v);
     std::vector<int> shape_vector;
-    for(auto sh:shape_dim_v)
-    {
+    for(auto sh:shape_dim_v){
         shape_vector.push_back(sh);
     }
     std::vector<int64_t> shape_desc = {static_cast<int>(shape_vector.size())};
@@ -60,18 +83,19 @@ class ToContiguousNpuKernel final : public user_op::OpKernel {
     std::vector<int64_t> offset_desc = {static_cast<int>(storage_offset_v.size())};
     HostTensorWrapper offset_wrap(ACL_INT32, ACL_FORMAT_ND, offset_desc.size(), offset_desc.data(),
                             storage_offset_v.size()*sizeof(int), storage_offset_v.data());  
-    
-    std::vector<int64_t> RealShape(shape_vector.begin(), shape_vector.end());
-    if( in_stride.size()==2){
-      RealShape[0] = 128;
-      RealShape[1] = 1024;
-      RealShape.push_back(static_cast<int64_t>(1024));
-    }
-    else{
-      for(int i=1;i<shape_vector.size();++i){
-        RealShape[i] = std::min(std::max({RealShape[i], static_cast<int64_t>(in_stride[i-1])}), static_cast<int64_t>(2048));
-      }
-    }
+    // std::cout<<"ToContiguous "<<out_shape.ToString()<<std::endl;
+    std::vector<int64_t> RealShape = MapShape(shape_vector);    
+    // std::vector<int64_t> RealShape(shape_vector.begin(), shape_vector.end());
+    // if( in_stride.size()==2){
+    //   RealShape[0] = 128;
+    //   RealShape[1] = 1024;
+    //   RealShape.push_back(static_cast<int64_t>(1024));
+    // }
+    // else{
+    //   for(int i=1;i<shape_vector.size();++i){
+    //     RealShape[i] = std::min(std::max({RealShape[i], static_cast<int64_t>(in_stride[i-1])}), static_cast<int64_t>(2048));
+    //   }
+    // }
     // std::cout<<"ToContiguous "<<ShapeToString(RealShape)<<std::endl;
     // std::cout<<"ToContiguous stride"<<ShapeToString(in_stride)<<std::endl;
     // std::cout<<"ToContiguous in"<<std::endl;

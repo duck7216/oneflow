@@ -1331,10 +1331,10 @@ class VectorNormFunctor {
                                        "complex dtypes, but got: Int.";
       }
     } else {
-      if (!IsFloatingDataType(x->dtype()->data_type())) {
-        UNIMPLEMENTED_THEN_RETURN() << "linalg.vector_norm(): only supports floating point and "
-                                       "complex dtypes, but got: Int.";
-      }
+      // if (!IsFloatingDataType(x->dtype()->data_type())) {
+      //   UNIMPLEMENTED_THEN_RETURN() << "linalg.vector_norm(): only supports floating point and "
+      //                                  "complex dtypes, but got: Int.";
+      // }
       dtype_val = x->dtype();
     }
     bool full_dim_flag = true;
@@ -1366,7 +1366,16 @@ class VectorNormFunctor {
         res = JUST(ReduceMin(JUST(Abs(x)), dim, keepdim));
       } else if (ord_val == 2.0 && keepdim == false && full_dim_flag
                  && x->requires_grad() == false) {
-        res = JUST(SqrtSquareSum(x));
+        if (x->dtype()->data_type() == DataType::kFloat16){
+          Symbol<DType> fp32 = DType(DataType::kFloat);
+          Symbol<DType> fp16 = DType(DataType::kFloat16);
+          res = JUST(Cast(x, fp32, false));
+          res = JUST(SqrtSquareSum(res));
+          res = JUST(Cast(res, fp16, false));
+        }
+        else{
+          res = JUST(SqrtSquareSum(x));
+        }
       } else {
         res =
             JUST(ScalarPow(JUST(ReduceSum(JUST(ScalarPow(JUST(Abs(x)), ord, false)), dim, keepdim)),

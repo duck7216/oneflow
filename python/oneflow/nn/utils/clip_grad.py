@@ -169,10 +169,10 @@ def clip_grad_norm_(
                 "this error and scale the gradients by the non-finite norm anyway, "
                 "set `error_if_nonfinite=False`"
             )
-        clip_coef = max_norm / (total_norm + 1e-6)
+        clip_coef = max_norm / (total_norm.cpu().float() + 1e-6)
         clip_coef_clamped = clip_coef.clamp(max=1.0)
         for p in parameters:
-            p.grad.detach().mul_(clip_coef_clamped.to(p.grad.device))
+            p.grad.detach().mul_(clip_coef_clamped.to(p.grad.device).to(p.grad.dtype))
     return total_norm
 
 
