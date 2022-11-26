@@ -74,14 +74,15 @@ class TORCH_SGD(Optimizer):
     def __init__(self, params, 
                     lr: float = 0.001,
                     momentum: float = 0.0,
-                    weight_decay: float = 0.0,):
+                    weight_decay: float = 0.0,
+                    loss_scale: float = 1.0):
         if  lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if momentum < 0.0:
             raise ValueError("Invalid momentum value: {}".format(momentum))
         if weight_decay < 0.0:
             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
-        
+        self.loss_scale = loss_scale
         options = dict()
         options["lr"] = lr
         options["momentum"] = momentum
@@ -118,7 +119,9 @@ class TORCH_SGD(Optimizer):
                 for p in group.parameters:
                     if p.grad is None:
                         continue
-                    d_p = p.grad
+                    d_p = p.grad 
+                    if self.loss_scale != 1.0:
+                        d_p = d_p * (1/self.loss_scale)
                     if weight_decay != 0:
                         d_p = d_p + weight_decay*p
                         #  d_p = d_p.add_npu(p, alpha = weight_decay, inplace=False)
