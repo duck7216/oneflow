@@ -91,6 +91,10 @@ ONEFLOW_API_PYBIND11_MODULE("", m) {
   m.def("NpuGetDeviceCount", &NpuGetDeviceCount);
   m.def("NpuSynchronize",&NpuSynchronize);
   m.def("GetNpuDeviceIndex", &GetNpuDeviceIndex);
+  m.def("_prof_init", &NpuProfInit);
+  m.def("_prof_start", &NpuProfStart);
+  m.def("_prof_stop", &NpuProfStop);
+  m.def("_prof_finalize", &NpuProfFinalize);
   #endif
   m.def("EmptyCache", &EmptyCache);
 #ifdef WITH_CUDA

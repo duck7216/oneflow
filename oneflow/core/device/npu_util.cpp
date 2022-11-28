@@ -27,6 +27,7 @@ limitations under the License.
 #include "oneflow/core/ep/npu/npu_stream.h"
 #include "oneflow/core/common/util.h"
 #include <acl/acl_op_compiler.h>
+#include <acl/acl_prof.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -135,10 +136,30 @@ void InitNpuContextOnce(int device_id ) {
   });
 }
 
-
 void NpuSynchronize(int device_id) {
   NpuCurrentDeviceGuard dev_guard(device_id);
   OF_NPU_CHECK(aclrtSynchronizeDevice());
+}
+
+static aclprofConfig *acl_prof_config = nullptr;
+void NpuProfInit(std::string path){
+  OF_NPU_CHECK(aclrtSynchronizeDevice());
+  OF_NPU_CHECK(aclprofInit(path.c_str(), path.length()));
+}
+
+void NpuProfStart(){
+  uint32_t deviceIdList[1] = {0};
+  acl_prof_config = aclprofCreateConfig(deviceIdList, 1, ACL_AICORE_ARITHMETIC_UTILIZATION, 
+      nullptr,ACL_PROF_ACL_API | ACL_PROF_TASK_TIME);
+  OF_NPU_CHECK(aclprofStart(acl_prof_config));
+}
+void NpuProfStop(){
+  OF_NPU_CHECK(aclrtSynchronizeDevice());
+  OF_NPU_CHECK(aclprofStop(acl_prof_config));
+}
+void NpuProfFinalize(){
+  OF_NPU_CHECK(aclprofDestroyConfig(acl_prof_config));
+  OF_NPU_CHECK(aclprofFinalize());
 }
 } // namespace oneflow
 

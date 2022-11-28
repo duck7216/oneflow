@@ -68,7 +68,13 @@ void InitNpuContextOnce(int device_id);
 
 void NpuSynchronize(int device_id);
 
+void NpuProfInit(std::string path);
 
+void NpuProfStart();
+
+void NpuProfStop();
+
+void NpuProfFinalize();
 }  // namespace oneflow
 
 #endif  // WITH_CUDA

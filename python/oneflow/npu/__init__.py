@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import oneflow as flow
+import os
 from oneflow.npu._utils import _get_device_index
 from typing import Union, Any
 
@@ -53,3 +54,37 @@ def synchronize(device: Union[flow.device, str, int, None] = None) -> None:
 def current_device() -> int:
     r"""Returns local rank as device index."""
     return flow._oneflow_internal.GetNpuDeviceIndex()
+
+class profile(object):
+    def __init__(self, profiler_result_path="./"):
+        self.result_path = profiler_result_path
+        if not os.path.exists(self.result_path):
+            try:
+                os.makedirs(self.result_path)
+            except Exception:
+                raise ValueError("the path of '%s' is invaild."%(self.result_path))
+    def __enter__(self):
+        profiler_result_path = os.path.abspath(self.result_path)
+        prof_init(profiler_result_path)
+        prof_start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        prof_stop()
+        prof_finalize()
+        return False
+
+def prof_init(path):
+    # path = os.environ['OF_NPU_PROFILING_PATH']
+    if not os.path.exists(path):
+        raise AssertionError("profiler_result_path: %s not exists."%(path))
+    flow._oneflow_internal._prof_init(path)
+
+def prof_start():
+    flow._oneflow_internal._prof_start()
+
+def prof_stop():
+    flow._oneflow_internal._prof_stop()
+
+def prof_finalize():
+    flow._oneflow_internal._prof_finalize()
