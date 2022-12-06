@@ -44,7 +44,7 @@ class NpuArgMaxKernel final : public user_op::OpKernel {
                .Check();
     npu_command.Run()
                .Realease();
-    OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    //OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
   }
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };

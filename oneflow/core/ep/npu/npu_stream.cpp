@@ -19,6 +19,7 @@ limitations under the License.
 #include "oneflow/core/hardware/node_device_descriptor_manager.h"
 #include "oneflow/core/ep/npu/npu_event.h"
 #include "oneflow/core/ep/npu/npu_device.h"
+#include "oneflow/user/ops/npu_command.h"
 #include <iostream>
 #ifdef WITH_NPU
 
@@ -78,7 +79,13 @@ void NpuStream::RecordEvent(Event* event) {
   OF_NPU_CHECK(aclrtRecordEvent(npu_event->npu_event(), npu_stream_));
 }
 
-aclrtStream NpuStream::npu_stream() const { return npu_stream_; }
+aclrtStream NpuStream::npu_stream() const { 
+    std::string stream_env = "OF_USE_GLOBAL_STREAM";
+    if(getenv(stream_env.c_str())){
+      return globalStream();
+    }
+    return npu_stream_; 
+  }
 
 }  // namespace ep
 

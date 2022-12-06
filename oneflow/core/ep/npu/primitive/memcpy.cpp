@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "oneflow/core/ep/include/primitive/memcpy.h"
 #include "oneflow/core/ep/npu/npu_stream.h"
-
+#include "oneflow/user/ops/npu_command.h"
 #include <iostream>
 namespace oneflow {
 

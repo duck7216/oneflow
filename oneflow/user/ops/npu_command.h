@@ -9,8 +9,8 @@
 #include "oneflow/core/ep/npu/npu_stream.h"
 #include "acl/acl.h"
 #include "acl/acl_op_compiler.h"
-namespace oneflow
-{
+namespace oneflow{
+
 void testblock();
 static std::map<DataType, aclDataType> datatype_map ={
                 {kChar, ACL_INT8}, // kChar is ACL_INT8 in pytorch
@@ -189,30 +189,24 @@ struct HostTensorWrapper
     aclMemType mem_type;
 };
 void HostTensorWrapperCreateTool(DimVector& shape_dim, std::vector<int64_t> shape_desc);
-// struct BatchNormTensorWrapper
-// {
-//     BatchNormTensorWrapper(void* tensor_ptr, aclDataType dataType,aclFormat origin_format, aclFormat npu_format,
-//                     int64_t num_dims, const int64_t* dims,size_t malloc_size, uint32_t tensor_size)
-//                 : tensor_ptr(tensor_ptr), dataType(dataType), origin_format(origin_format), npu_format(npu_format),
-//                   num_dims(num_dims), dims(dims), malloc_size(malloc_size), tensor_size(tensor_size),
-//                   data_ptr(nullptr)
-//                 {
-//                     OF_NPU_CHECK(aclrtMalloc(&data_ptr, malloc_size, ACL_MEM_MALLOC_NORMAL_ONLY));
-//                     OF_NPU_CHECK(aclrtMemset(data_ptr, malloc_size, 0, malloc_size));
-//                     OF_NPU_CHECK(aclrtMemcpy(data_ptr, tensor_size, tensor_ptr, tensor_size, ACL_MEMCPY_DEVICE_TO_DEVICE ));
-//                 }
-//     void * tensor_ptr;
-//     aclDataType dataType;
-//     aclFormat origin_format;
-//     aclFormat npu_format;
-//     int64_t num_dims;
-//     const int64_t* dims;
-//     uint32_t tensor_size;   
-//     size_t malloc_size; 
-//     void * data_ptr;
-// };
-class NpuCommand 
-{
+
+class GlobalStream{
+    public:
+        GlobalStream() {
+            OF_NPU_CHECK(aclrtCreateStream(&stream_));
+        }
+        ~GlobalStream(){
+            OF_NPU_CHECK(aclrtDestroyStream(&stream_));
+        }
+        aclrtStream stream() { return stream_;}
+    private:
+        aclrtStream stream_;
+};
+
+aclrtStream globalStream();
+std::string getStreamEnv();
+
+class NpuCommand {
 public:
     NpuCommand()
     {

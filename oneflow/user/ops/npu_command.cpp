@@ -107,11 +107,19 @@ void PrintResult(void * out_buffers, uint32_t out_tensor_size, int data_len){
         std::cout<<std::endl;    
     }
 }
-void PrintResult(user_op::Tensor* out)
-{
+void PrintResult(user_op::Tensor* out){
     PrintResult(out->mut_dptr<void>(),
                 out->shape_view().elem_cnt() * GetSizeOfDataType(out->data_type()),
                 GetSizeOfDataType(out->data_type()));
+}
+
+aclrtStream globalStream(){
+    static GlobalStream global_stream_;
+    return global_stream_.stream();
+}
+
+std::string getStreamEnv(){
+    return "OF_USE_GLOBAL_STREAM";
 }
 
 aclTensorDesc* getTensorDesc(user_op::Tensor* tensor, std::string format, std::string real_type)
@@ -422,8 +430,7 @@ NpuCommand& NpuCommand::Attr(std::string &&name, std::string value)
     OF_NPU_CHECK(aclopSetAttrString(op_attr, name.c_str(), value.c_str()));
     return *this;
 }
-NpuCommand& NpuCommand::Stream(aclrtStream stream)
-{
+NpuCommand& NpuCommand::Stream(aclrtStream stream){
     this->stream = stream;
     return *this;
 }
