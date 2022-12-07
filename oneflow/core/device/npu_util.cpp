@@ -32,7 +32,7 @@ limitations under the License.
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <ge/ge_api.h>
-
+#include "oneflow/user/ops/npu_command.h"
 #define GetCurrentDirPath getcwd
 #define Mkdir(path, mode) mkdir(path, mode)
 
@@ -121,8 +121,8 @@ void InitNpuContextOnce(int device_id ) {
   static aclrtContext context_;
   std::call_once(aclcontext,[&](){
     //std::cout<<"Init && Create Context Once"<<std::endl;
-    static std::string json_path = "/data/acl_test/acl.json";
-    OF_NPU_CHECK(aclInit(json_path.c_str()));
+    // static std::string json_path = "/data/acl_test/acl.json";
+    OF_NPU_CHECK(aclInit(nullptr));
     OF_NPU_CHECK(aclrtCreateContext(&context_, device_id));
     // InitNpuOtherOnce(device_id);
   });

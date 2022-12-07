@@ -39,15 +39,24 @@ NpuStream::NpuStream(NpuDevice* device)
     : device_index_(device->device_index()), device_(device) {
   NpuCurrentDeviceGuard guard(device_index_);
   // npu_stream
-  OF_NPU_CHECK(aclrtCreateStream(&npu_stream_));
+  std::string stream_env = "OF_USE_GLOBAL_STREAM";
+  if(!getenv(stream_env.c_str())){
+    OF_NPU_CHECK(aclrtCreateStream(&npu_stream_));
+  }
   workspace_size_ = kDefaultWorkspaceSize;
   OF_NPU_CHECK(aclrtMalloc(&workspace_, workspace_size_,ACL_MEM_MALLOC_NORMAL_ONLY));
 }
 
 NpuStream::~NpuStream() {
   NpuCurrentDeviceGuard guard(device_index_);
-  OF_NPU_CHECK(aclrtSynchronizeStream(npu_stream_));
-  OF_NPU_CHECK(aclrtDestroyStream(npu_stream_));
+  std::string stream_env = "OF_USE_GLOBAL_STREAM";
+  if(getenv(stream_env.c_str())){
+    globalStream().Free();
+  }
+  else{
+    OF_NPU_CHECK(aclrtSynchronizeStream(npu_stream_));
+    OF_NPU_CHECK(aclrtDestroyStream(npu_stream_));
+  }
   OF_NPU_CHECK(aclrtFree(workspace_));
 }
 
@@ -66,11 +75,18 @@ Device* NpuStream::device() const { return device_; }
 
 Maybe<void> NpuStream::Sync() {
   std::cout<<"NpuStream::~Sync()"<<std::endl;
-  aclError err = aclrtSynchronizeStream(npu_stream_);
-  if (err == ACL_SUCCESS) {
+  std::string stream_env = "OF_USE_GLOBAL_STREAM";
+  if(getenv(stream_env.c_str())){
+    globalStream().Sync();
     return Maybe<void>::Ok();
-  } else {
-    return Error::RuntimeError() <<" (" << err << ") ";
+  }
+  else{
+    aclError err = aclrtSynchronizeStream(npu_stream_);
+    if (err == ACL_SUCCESS) {
+      return Maybe<void>::Ok();
+    } else {
+      return Error::RuntimeError() <<" (" << err << ") ";
+    }
   }
 }
 
@@ -82,7 +98,7 @@ void NpuStream::RecordEvent(Event* event) {
 aclrtStream NpuStream::npu_stream() const { 
     std::string stream_env = "OF_USE_GLOBAL_STREAM";
     if(getenv(stream_env.c_str())){
-      return globalStream();
+      return globalStream().stream();
     }
     return npu_stream_; 
   }

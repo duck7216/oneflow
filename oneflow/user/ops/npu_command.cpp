@@ -113,9 +113,9 @@ void PrintResult(user_op::Tensor* out){
                 GetSizeOfDataType(out->data_type()));
 }
 
-aclrtStream globalStream(){
+GlobalStream& globalStream(){
     static GlobalStream global_stream_;
-    return global_stream_.stream();
+    return global_stream_;
 }
 
 std::string getStreamEnv(){

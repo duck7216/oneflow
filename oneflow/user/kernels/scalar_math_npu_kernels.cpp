@@ -40,6 +40,9 @@ class ScalarMulNpuKernel final : public user_op::OpKernel {
     AclTensorWrapper wrap(tmp_buffer->mut_dptr<void>(), DataTypeTraits<T>::type, 0, nullptr,
                              ACL_FORMAT_ND, sizeof(T), &scalar_operand);//dck_caution_here typetraits
     OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // std::vector<int64_t> shape_desc = {1};
+    // HostTensorWrapper wrap(DataTypeTraits<T>::type, ACL_FORMAT_ND, shape_desc.size(), shape_desc.data(),
+    //                         sizeof(T), &scalar_operand);
     NpuCommand npu_command;
     npu_command.OpName("Mul")
                 .Input(in)
@@ -89,6 +92,9 @@ class ScalarAddNpuKernel final : public user_op::OpKernel {
     AclTensorWrapper wrap(tmp_buffer->mut_dptr<void>(), DataTypeTraits<T>::type, 0, nullptr,
                              ACL_FORMAT_ND, sizeof(T), &scalar_operand);//dck_caution_here typetraits
     OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // std::vector<int64_t> shape_desc = {1};
+    // HostTensorWrapper wrap(DataTypeTraits<T>::type, ACL_FORMAT_ND, shape_desc.size(), shape_desc.data(),
+    //                         sizeof(T), &scalar_operand);
     NpuCommand npu_command;
     npu_command.OpName("Add")
                 .Input(in)
@@ -140,6 +146,9 @@ class ScalarDivNpuKernel final : public user_op::OpKernel {
     AclTensorWrapper wrap(tmp_buffer->mut_dptr<void>(), DataTypeTraits<T>::type, 0, nullptr,
                              ACL_FORMAT_ND, sizeof(T), &scalar_operand);//dck_caution_here typetraits
     OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // std::vector<int64_t> shape_desc = {1};
+    // HostTensorWrapper wrap(DataTypeTraits<T>::type, ACL_FORMAT_ND, shape_desc.size(), shape_desc.data(),
+    //                         sizeof(T), &scalar_operand);
     NpuCommand npu_command;
     npu_command.OpName("Div")
                 .Input(in)

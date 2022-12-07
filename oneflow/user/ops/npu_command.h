@@ -192,18 +192,18 @@ void HostTensorWrapperCreateTool(DimVector& shape_dim, std::vector<int64_t> shap
 
 class GlobalStream{
     public:
-        GlobalStream() {
-            OF_NPU_CHECK(aclrtCreateStream(&stream_));
-        }
-        ~GlobalStream(){
-            OF_NPU_CHECK(aclrtDestroyStream(&stream_));
-        }
+        GlobalStream();
+        ~GlobalStream() = default;
+        void Free();
+        void Sync();
         aclrtStream stream() { return stream_;}
     private:
         aclrtStream stream_;
+        aclrtContext context_;
 };
 
-aclrtStream globalStream();
+
+GlobalStream& globalStream();
 std::string getStreamEnv();
 
 class NpuCommand {
