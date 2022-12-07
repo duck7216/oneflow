@@ -80,7 +80,7 @@ class ViewCopyNpuKernel final : public user_op::OpKernel {
     std::vector<int64_t> storage_offset_v = {0};
     std::vector<int64_t> offset_desc = {static_cast<int>(storage_offset_v.size())};
  
-    OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));
     AclTensorWrapper offset_wrap(tmp_buffer->mut_dptr<void>(), ACL_INT64, offset_desc.size(), offset_desc.data(), ACL_FORMAT_ND,
                             sizeof(int64_t), storage_offset_v.data());
     std::vector<int64_t> RealShape = {out_shape_vector.begin(), out_shape_vector.end()};
@@ -102,7 +102,7 @@ class ViewCopyNpuKernel final : public user_op::OpKernel {
                .Check();
     npu_command.Run()
                .Realease();
-    OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
+    // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
   }
 
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
