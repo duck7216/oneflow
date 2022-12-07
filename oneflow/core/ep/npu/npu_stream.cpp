@@ -43,6 +43,9 @@ NpuStream::NpuStream(NpuDevice* device)
   if(!getenv(stream_env.c_str())){
     OF_NPU_CHECK(aclrtCreateStream(&npu_stream_));
   }
+  else{
+    globalStream();
+  }
   workspace_size_ = kDefaultWorkspaceSize;
   OF_NPU_CHECK(aclrtMalloc(&workspace_, workspace_size_,ACL_MEM_MALLOC_NORMAL_ONLY));
 }
@@ -51,7 +54,7 @@ NpuStream::~NpuStream() {
   NpuCurrentDeviceGuard guard(device_index_);
   std::string stream_env = "OF_USE_GLOBAL_STREAM";
   if(getenv(stream_env.c_str())){
-    globalStream().Free();
+    // globalStream().Free();
   }
   else{
     OF_NPU_CHECK(aclrtSynchronizeStream(npu_stream_));

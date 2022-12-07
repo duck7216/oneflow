@@ -5,6 +5,9 @@ namespace oneflow{
         OF_NPU_CHECK(aclrtGetCurrentContext(&context_));
         OF_NPU_CHECK(aclrtCreateStream(&stream_));
     }
+    GlobalStream::~GlobalStream(){
+        // Free();
+    }
     void GlobalStream::Free(){
         std::once_flag flag;
         std::call_once(flag, [&](){

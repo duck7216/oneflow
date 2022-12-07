@@ -193,7 +193,7 @@ void HostTensorWrapperCreateTool(DimVector& shape_dim, std::vector<int64_t> shap
 class GlobalStream{
     public:
         GlobalStream();
-        ~GlobalStream() = default;
+        ~GlobalStream();
         void Free();
         void Sync();
         aclrtStream stream() { return stream_;}
