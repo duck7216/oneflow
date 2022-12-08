@@ -37,14 +37,15 @@ class MemcpyImpl : public Memcpy {
     if (dst == src) { return; }
     auto npu_stream = stream->As<NpuStream>()->npu_stream();
     auto aclRule = ACL_MEMCPY_HOST_TO_DEVICE;
-    //OF_NPU_CHECK(aclrtSynchronizeDevice());
-    if(kind == MemcpyKind::kDtoH)
-    {
+    std::string stream_env = "OF_USE_GLOBAL_STREAM";
+    if(!getenv(stream_env.c_str())){
+      OF_NPU_CHECK(aclrtSynchronizeDevice());
+    }
+    if(kind == MemcpyKind::kDtoH){
       OF_NPU_CHECK(aclrtSynchronizeStream(npu_stream));
       aclRule = ACL_MEMCPY_DEVICE_TO_HOST;
     } 
-    else if(kind == MemcpyKind::kDtoD)
-    {
+    else if(kind == MemcpyKind::kDtoD){
       OF_NPU_CHECK(aclrtSynchronizeStream(npu_stream));
       aclRule = ACL_MEMCPY_DEVICE_TO_DEVICE;
     }
@@ -53,7 +54,9 @@ class MemcpyImpl : public Memcpy {
                                   src, 
                                   count, 
                                   aclRule));
-    //OF_NPU_CHECK(aclrtSynchronizeDevice());
+    if(!getenv(stream_env.c_str())){
+      OF_NPU_CHECK(aclrtSynchronizeDevice());
+    }
   }
   MemcpyKind kind;
 };
