@@ -1368,8 +1368,7 @@ class CrossEntropyFunctor {
 
     std::shared_ptr<TensorTuple> kernel_result;
     std::shared_ptr<Tensor> result;
-    bool isNpu = (input->device().GetOrThrow()->type()=="npu");
-    if(isNpu)
+    if(input->is_npu())
     {
       auto& attrs_npu = THREAD_CACHED_MUTABLE_ATTR_MAP("reduction", "ignore_index");
       attrs_npu.SetAttr<std::string>("reduction", reduction);
@@ -2731,8 +2730,7 @@ class DropoutFunctor {
         return x;
       } else {
         outputs->resize(2);
-        bool isNpu = (x->device().GetOrThrow()->type()=="npu");
-        if(isNpu){
+        if(x->is_npu()){
           JUST(OpInterpUtil::Dispatch(*dropout_op_npu, {x}, outputs.get(),
                                       OpExprInterpContext(dropout_attrs, dropout_state)));          
         }

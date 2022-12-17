@@ -106,8 +106,7 @@ Maybe<void> LayerNorm::Apply(const LayerNormCaptureState* ctx, const TensorTuple
   std::shared_ptr<Tensor> x = saved_tensors.at(ctx->x_index);
   std::shared_ptr<Tensor> mean = saved_tensors.at(ctx->mean_index);
   std::shared_ptr<Tensor> inv_variance = saved_tensors.at(ctx->inv_variance_index);
-  if(JUST(dy->device())->type()=="npu")
-  {
+  if(JUST(dy->is_npu()){
     std::shared_ptr<Tensor> gamma = saved_tensors.at(ctx->gamma_index);
     const auto& results = JUST(
         functional::LayerNormNpuGrad(dy, x, mean, inv_variance, gamma, begin_params_axis, ctx->epsilon));

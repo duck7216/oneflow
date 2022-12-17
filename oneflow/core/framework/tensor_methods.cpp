@@ -156,7 +156,7 @@ Maybe<Tensor> Slice(const std::shared_ptr<Tensor>& input, const std::vector<int6
       autograd::AutoGradMode mode(create_graph);
       CHECK_EQ_OR_RETURN(out_grads.size(), 1);  // NOLINT(maybe-need-error-msg)
       in_grads->resize(1);
-      if(JUST(out_grads[0]->device())->type()=="npu"){
+      if(JUST(out_grads[0]->is_npu()){
         auto grad = JUST(
             functional::SliceGrad(out_grads[0], in_shape, starts, ends, steps));
         auto grad_zero = JUST(functional::ZerosLike(grad));
