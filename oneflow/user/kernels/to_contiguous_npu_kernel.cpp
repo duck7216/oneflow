@@ -27,17 +27,17 @@ namespace {
 
 std::vector<int64_t> MapShape(std::vector<int>& out_shape){
   if(out_shape.size()==4){
-    if(out_shape[1]==12 && out_shape[2]==384 && out_shape[3]==64){
-      // [4, 384, 12, 64] -> [4, 12, 384, 64]
-      return {out_shape[0], 384, 12, 64};
+    if(out_shape[2]==384 && out_shape[3]==64){
+      // [4, 384, x, 64] -> [4, x, 384, 64]
+      return {out_shape[0], 384, out_shape[1], 64};
     }
-    else if(out_shape[1]==12 && out_shape[2]==64 && out_shape[3]==384){
-      // [4, 12, 384, 64] -> [4, 12, 64, 384]
-      return {out_shape[0], 12, 384, 64};
+    else if(out_shape[2]==64 && out_shape[3]==384){
+      // [4, x, 384, 64] -> [4, x, 64, 384]
+      return {out_shape[0], out_shape[1], 384, 64};
     }
-    else if(out_shape[1]==384 && out_shape[2]==12 && out_shape[3]==64){
-      // [4, 12, 384, 64] -> [4, 384, 12, 64]
-      return {out_shape[0], 12, 384, 64};
+    else if(out_shape[1]==384  && out_shape[3]==64){
+      // [4, x, 384, 64] -> [4, 384, x, 64]
+      return {out_shape[0], out_shape[2], 384, 64};
     }
   }
   std::cout<<"-------------------------"<<std::endl;

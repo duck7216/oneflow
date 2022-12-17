@@ -334,12 +334,10 @@ def _gen_tensor_str_template(tensor, is_meta):
         suffixes.append("device='" + str(tensor.device) + "'")
     elif tensor.device.type == "npu":
         suffixes.append("device='" + str(tensor.device) + "'")
+        tensor = tensor.to("cpu")
     elif tensor.device.type != "cpu":
         suffixes.append("device='" + str(tensor.device) + "'")
         
-    if tensor.device.type == "npu":
-        # print("Convert to Cpu")
-        tensor = tensor.to("cpu")
     if tensor.is_lazy:
         suffixes.append("is_lazy='True'")
     # tensor is empty, meta or normal
