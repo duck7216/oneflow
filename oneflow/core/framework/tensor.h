@@ -56,6 +56,7 @@ class Tensor : public std::enable_shared_from_this<Tensor> {
   virtual Maybe<Symbol<Device>> device() const = 0;
   virtual Maybe<Symbol<Device>*> mut_device() = 0;
   virtual bool is_cuda() const = 0;
+  virtual bool is_npu() const = 0;
   virtual bool is_global() const = 0;
   virtual bool is_local() const { return !is_global(); }
   virtual bool is_lazy() const = 0;
@@ -148,6 +149,10 @@ class StaticZerosTensor final : public Tensor {
   Maybe<Symbol<Device>> device() const override { return device_; }
   Maybe<Symbol<Device>*> mut_device() override { RETURN_ERROR_WITH_BUG_PROMPT(); }
   bool is_cuda() const override {
+    PRINT_BUG_PROMPT_AND_ABORT();
+    return false;
+  }
+  bool is_npu() const override {
     PRINT_BUG_PROMPT_AND_ABORT();
     return false;
   }
@@ -315,6 +320,7 @@ class ProxyTensor : public TensorIf<DerivedT> {
   virtual Maybe<Symbol<Device>> device() const override { return tensor_->device(); }
   virtual Maybe<Symbol<Device>*> mut_device() override { return tensor_->mut_device(); }
   virtual bool is_cuda() const override { return tensor_->is_cuda(); }
+  virtual bool is_npu() const override { return tensor_->is_npu(); }
   virtual bool is_global() const override { return tensor_->is_global(); }
   virtual bool is_local() const override { return tensor_->is_local(); }
   virtual bool is_lazy() const override { return tensor_->is_lazy(); }
@@ -477,6 +483,7 @@ class LocalTensor final : public TensorIf<LocalTensor> {
   bool is_lazy() const override { return impl_->is_lazy(); }
   bool is_global() const override { return false; }
   bool is_cuda() const override;
+  bool is_npu() const override;
   std::shared_ptr<Tensor> contiguous() const override;
 
   const TensorMeta& tensor_meta() const override { return *impl_->tensor_meta(); }
@@ -594,6 +601,7 @@ class GlobalTensor final : public TensorIf<GlobalTensor> {
   }
   Maybe<LocalTensor> cur_rank_phy_tensor() const override { return impl_->cur_rank_phy_tensor(); }
   bool is_cuda() const override;
+  bool is_npu() const override;
   std::shared_ptr<Tensor> contiguous() const override;
   Maybe<Tensor> data() override { return this->detach(); }
   Maybe<const Stride> stride() const override { return impl_->stride(); }

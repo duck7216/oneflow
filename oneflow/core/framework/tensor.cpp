@@ -77,7 +77,7 @@ std::shared_ptr<Tensor> Parameter::pin_memory() const {
 }
 
 bool LocalTensor::is_cuda() const { return CHECK_JUST(device())->type() == "cuda"; }
-
+bool LocalTensor::is_npu() const { return CHECK_JUST(device())->type() == "npu"; }
 Maybe<Tensor> LocalTensor::detach() const {
   std::shared_ptr<Tensor> tensor = std::make_shared<LocalTensor>(JUST(impl_->detach()));
   if (this->is_lazy()) { JUST(tensor->BorrowTensorName(this)); }
@@ -152,7 +152,9 @@ Maybe<GlobalTensor> GlobalTensor::MakeTensor(const std::shared_ptr<const Shape>&
 bool GlobalTensor::is_cuda() const {
   return CHECK_JUST(parallel_desc())->device_type() == DeviceType::kCUDA;
 }
-
+bool GlobalTensor::is_npu() const {
+  return CHECK_JUST(parallel_desc())->device_type() == DeviceType::kNPU;
+}
 Maybe<Tensor> GlobalTensor::detach() const {
   std::shared_ptr<Tensor> tensor = std::make_shared<GlobalTensor>(JUST(impl_->detach()));
   if (this->is_lazy()) { JUST(tensor->BorrowTensorName(this)); }

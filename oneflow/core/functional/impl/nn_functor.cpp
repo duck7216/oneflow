@@ -874,8 +874,7 @@ class MaxPoolNDFunctor {
     // If stride is None, we set it as kernel_size to align Pytorch.
     attrs.SetAllAttrs(kernel_size, padding, stride ? *JUST(stride) : kernel_size, dilation,
                       data_format, return_indices, ceil_mode);
-    bool isNpu = (x->device().GetOrThrow()->type()=="npu");
-    if(isNpu){
+    if(x->is_npu()){
       return OpInterpUtil::Dispatch<TensorTuple>(*op_npu, {x}, attrs);
     }
     return OpInterpUtil::Dispatch<TensorTuple>(*op_, {x}, attrs);
