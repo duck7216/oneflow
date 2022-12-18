@@ -1351,7 +1351,6 @@ class CrossEntropyFunctor {
         << Error::RuntimeError() << "Reduction should be none, sum or mean.";
     const auto& input_shape = input->shape();
     const auto& target_shape = target->shape();
-
     std::vector<int> input_perm(input_shape->dim_vec().size(), 0);
     input_perm[input_perm.size() - 1] = 1;
     for (size_t i = 1; i < input_perm.size() - 1; ++i) { input_perm[i] = i + 1; }
@@ -1368,13 +1367,32 @@ class CrossEntropyFunctor {
 
     std::shared_ptr<TensorTuple> kernel_result;
     std::shared_ptr<Tensor> result;
-    if(input->is_npu())
-    {
+
+    if(input->is_npu()){
+      if(reduction!="sum"&&reduction!="mean"){
+        UNIMPLEMENTED();
+      }
       auto& attrs_npu = THREAD_CACHED_MUTABLE_ATTR_MAP("reduction", "ignore_index");
-      attrs_npu.SetAttr<std::string>("reduction", reduction);
-      attrs_npu.SetAttr<int64_t>("ignore_index", ignore_index);
-      kernel_result = JUST(OpInterpUtil::Dispatch<TensorTuple>(*op_nll_npu_, {input_, target_}, attrs_npu));
-      return kernel_result->at(0);
+      if(!input->is_global()){
+        attrs_npu.SetAttr<std::string>("reduction", reduction);
+        attrs_npu.SetAttr<int64_t>("ignore_index", ignore_index);
+        kernel_result = JUST(OpInterpUtil::Dispatch<TensorTuple>(*op_nll_npu_, {input_, target_}, attrs_npu));
+        return kernel_result->at(0);
+      }
+      else{
+        std::string new_red = "sum";
+        attrs_npu.SetAttr<std::string>("reduction", new_red);
+        attrs_npu.SetAttr<int64_t>("ignore_index", ignore_index);
+        kernel_result = JUST(OpInterpUtil::Dispatch<TensorTuple>(*op_nll_npu_, {input_, target_}, attrs_npu));
+        if(reduction=="sum"){
+          return kernel_result->at(0);
+        }
+        else{
+          auto sum = JUST(VectorAt(*kernel_result, 0));
+          auto total_weight = JUST(VectorAt(*kernel_result, 1));
+          return functional::Div(sum, total_weight);
+        }
+      }
     }
 
     auto& attrs = THREAD_CACHED_MUTABLE_ATTR_MAP("ignore_index");

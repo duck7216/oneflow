@@ -61,10 +61,28 @@ namespace oneflow {
 }
 
 /* static */ Maybe<void> NllNpuOp::GetSbp(user_op::SbpContext* ctx) {
-  return GenLossForwardDefaultGetSbpFn(
-      [](user_op::UserOpSbpSignatureBuilder& builder, user_op::SbpContext* ctx) {
-        builder.PartialSum(user_op::OpArg("total_weight", 0));
-      })(ctx);
+ auto builder1 = ctx->NewBuilder()
+                      .Split(user_op::OpArg("input", 0), 0)
+                      .Split(user_op::OpArg("target", 0), 0)
+                      .PartialSum(user_op::OpArg("output", 0))
+                      .PartialSum(user_op::OpArg("total_weight", 0) );
+  if (ctx->user_op_conf().has_input("weight", 0)) {
+    builder1.Broadcast(user_op::OpArg("weight", 0));
+  }
+  builder1.Build();
+
+  // split class dim
+  const auto& shape = ctx->LogicalTensorDesc4InputArgNameAndIndex("input", 0).shape();
+  auto builder2 = ctx->NewBuilder()
+                      .Split(user_op::OpArg("input", 0), shape.NumAxes() - 1)
+                      .Broadcast(user_op::OpArg("target", 0))
+                      .PartialSum(user_op::OpArg("output", 0))
+                      .PartialSum(user_op::OpArg("total_weight", 0));
+  if (ctx->user_op_conf().has_input("weight", 0)) {
+    builder2.Split(user_op::OpArg("weight", 0), 0);
+  }
+  builder2.Build();
+  return Maybe<void>::Ok();
 }
 
 /* static */ Maybe<void> NllNpuOp::ModifyInputArg(const GetInputArgModifier& GetInputArgModifierFn,
@@ -128,10 +146,30 @@ namespace oneflow {
 }
 
 /* static */ Maybe<void> NllGradNpuOp::GetSbp(user_op::SbpContext* ctx) {
-  return GenLossBackwardDefaultGetSbpFn(
-      [](user_op::UserOpSbpSignatureBuilder& builder, user_op::SbpContext* ctx) {
-        builder.PartialSum(user_op::OpArg("total_weight", 0));
-      })(ctx);
+  auto builder1 = ctx->NewBuilder()
+                      .Split(user_op::OpArg("input", 0), 0)
+                      .Split(user_op::OpArg("target", 0), 0)
+                      .Split(user_op::OpArg("out_grad", 0), 0)
+                      .Split(user_op::OpArg("total_weight", 0), 0)
+                      .Split(user_op::OpArg("in_grad", 0), 0);
+  if (ctx->user_op_conf().has_input("weight", 0)) {
+    builder1.Broadcast(user_op::OpArg("weight", 0));
+  }
+  builder1.Build();
+
+  // split class dim
+  const auto& shape = ctx->LogicalTensorDesc4InputArgNameAndIndex("input", 0).shape();
+  auto builder2 = ctx->NewBuilder()
+                      .Split(user_op::OpArg("input", 0), shape.NumAxes() - 1)
+                      .Broadcast(user_op::OpArg("target", 0))
+                      .Broadcast(user_op::OpArg("out_grad", 0))
+                      .Split(user_op::OpArg("in_grad", 0), shape.NumAxes() - 1);
+  if (ctx->user_op_conf().has_input("weight", 0)) {
+    builder2.Split(user_op::OpArg("weight", 0), 0);
+  }
+  builder2.Build();
+
+  return Maybe<void>::Ok();
 }
 
 /* static */ Maybe<void> NllGradNpuOp::InferDataType(user_op::InferContext* ctx) {

@@ -41,16 +41,16 @@ class IdentityNpuKernel final : public user_op::OpKernel {
   }
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };
-#define REGISTER_IDENTITY_KERNEL(op)                                                    \
-  REGISTER_USER_KERNEL(op)                                                                      \
-      .SetCreateFn<IdentityNpuKernel>()                                                    \
-      .SetIsMatchedHob(user_op::HobDeviceType() == DeviceType::kNPU)                                      \
-      .SetInplaceProposalFn([](const user_op::InferContext&,                                    \
-                               user_op::AddInplaceArgPair AddInplaceArgPairFn) -> Maybe<void> { \
-        OF_RETURN_IF_ERROR(AddInplaceArgPairFn("out", 0, "in", 0, false));                      \
-        return Maybe<void>::Ok();                                                               \
-      });
-REGISTER_IDENTITY_KERNEL("identity")
+// #define REGISTER_IDENTITY_KERNEL(op)                                                    \
+//   REGISTER_USER_KERNEL(op)                                                                      \
+//       .SetCreateFn<IdentityNpuKernel>()                                                    \
+//       .SetIsMatchedHob(user_op::HobDeviceType() == DeviceType::kNPU)                                      \
+//       .SetInplaceProposalFn([](const user_op::InferContext&,                                    \
+//                                user_op::AddInplaceArgPair AddInplaceArgPairFn) -> Maybe<void> { \
+//         OF_RETURN_IF_ERROR(AddInplaceArgPairFn("out", 0, "in", 0, false));                      \
+//         return Maybe<void>::Ok();                                                               \
+//       });
+// REGISTER_IDENTITY_KERNEL("identity")
 } // namespace
 
 } // namespace oneflow

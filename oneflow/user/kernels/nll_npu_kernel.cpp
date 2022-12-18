@@ -44,8 +44,7 @@ class NllKernel final : public user_op::OpKernel {
     user_op::Tensor* weight =
         ctx->has_input("weight", 0) ? ctx->Tensor4ArgNameAndIndex("weight", 0) : nullptr;
 
-    if(!weight)
-    {
+    if(!weight){
         std::vector<float> weight_v(input_blob->shape_view().elem_cnt(), 1.0);
         std::vector<int64_t> weight_shape;
         weight_shape.push_back(input_blob->shape_view().At(1));
@@ -67,8 +66,8 @@ class NllKernel final : public user_op::OpKernel {
                   .Check();
         npu_command.Run()
                .Realease();
-      //   OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
-      //   PrintResult(out_blob);
+      // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
+      // PrintResult(out_blob);
       //  std::cout<<"NllKernel Execute Over"<<std::endl;  
     }
     else
