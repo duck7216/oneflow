@@ -146,28 +146,40 @@ namespace oneflow {
 }
 
 /* static */ Maybe<void> NllGradNpuOp::GetSbp(user_op::SbpContext* ctx) {
-  auto builder1 = ctx->NewBuilder()
+  auto builder0 = ctx->NewBuilder()
                       .Split(user_op::OpArg("input", 0), 0)
                       .Split(user_op::OpArg("target", 0), 0)
-                      .Split(user_op::OpArg("out_grad", 0), 0)
-                      .Split(user_op::OpArg("total_weight", 0), 0)
+                      .Broadcast(user_op::OpArg("out_grad", 0))
+                      .Broadcast(user_op::OpArg("total_weight", 0))
                       .Split(user_op::OpArg("in_grad", 0), 0);
   if (ctx->user_op_conf().has_input("weight", 0)) {
-    builder1.Broadcast(user_op::OpArg("weight", 0));
+    builder0.Broadcast(user_op::OpArg("weight", 0));
   }
-  builder1.Build();
+  builder0.Build();
+
+
+  // auto builder1 = ctx->NewBuilder()
+  //                     .Split(user_op::OpArg("input", 0), 0)
+  //                     .Split(user_op::OpArg("target", 0), 0)
+  //                     .Split(user_op::OpArg("out_grad", 0), 0)
+  //                     .Split(user_op::OpArg("total_weight", 0), 0)
+  //                     .Split(user_op::OpArg("in_grad", 0), 0);
+  // if (ctx->user_op_conf().has_input("weight", 0)) {
+  //   builder1.Broadcast(user_op::OpArg("weight", 0));
+  // }
+  // builder1.Build();
 
   // split class dim
-  const auto& shape = ctx->LogicalTensorDesc4InputArgNameAndIndex("input", 0).shape();
-  auto builder2 = ctx->NewBuilder()
-                      .Split(user_op::OpArg("input", 0), shape.NumAxes() - 1)
-                      .Broadcast(user_op::OpArg("target", 0))
-                      .Broadcast(user_op::OpArg("out_grad", 0))
-                      .Split(user_op::OpArg("in_grad", 0), shape.NumAxes() - 1);
-  if (ctx->user_op_conf().has_input("weight", 0)) {
-    builder2.Split(user_op::OpArg("weight", 0), 0);
-  }
-  builder2.Build();
+  // const auto& shape = ctx->LogicalTensorDesc4InputArgNameAndIndex("input", 0).shape();
+  // auto builder2 = ctx->NewBuilder()
+  //                     .Split(user_op::OpArg("input", 0), shape.NumAxes() - 1)
+  //                     .Broadcast(user_op::OpArg("target", 0))
+  //                     .Broadcast(user_op::OpArg("out_grad", 0))
+  //                     .Split(user_op::OpArg("in_grad", 0), shape.NumAxes() - 1);
+  // if (ctx->user_op_conf().has_input("weight", 0)) {
+  //   builder2.Split(user_op::OpArg("weight", 0), 0);
+  // }
+  // builder2.Build();
 
   return Maybe<void>::Ok();
 }

@@ -58,7 +58,7 @@ class MathBinaryBroadcastDivKernel final : public user_op::OpKernel{
     user_op::Tensor* z = ctx->Tensor4ArgNameAndIndex("z", 0);
     const int64_t x_elem_cnt = x->shape_view().elem_cnt();
     const int64_t y_elem_cnt = y->shape_view().elem_cnt();
-
+    std::cout<<"Div Stream "<<ctx->stream()->As<ep::NpuStream>()->npu_stream()<<std::endl;
     if (x_elem_cnt != 0 && y_elem_cnt != 0) {
         NpuCommand npu_command;
         npu_command.OpName("RealDiv")
