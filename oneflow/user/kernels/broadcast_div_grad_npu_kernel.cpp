@@ -54,11 +54,9 @@ class BroadcastDivGradNpuKernel final : public user_op::OpKernel {
                 .Output(dy)
                 .Stream(ctx->stream()->As<ep::NpuStream>()->npu_stream())
                 .Check();
-    div_command.Run()
+    mul_command.Run()
                .Realease();
     // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));   
-    // PrintResult(dy);
-    // std::cout<<"DivGrad Execute Over"<<std::endl; 
   };
   bool AlwaysComputeWhenAllOutputsEmpty() const override { return false; }
 };

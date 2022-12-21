@@ -22,6 +22,7 @@ namespace one {
 struct NllNpuCaptureState : public AutoGradCaptureState {
   bool requires_grad = false;
   int64_t ignore_index = -100;
+  std::string reduction = "mean";
 };
 
 class NllNpu : public OpExprGradFunction<NllNpuCaptureState> {
@@ -49,6 +50,7 @@ Maybe<void> NllNpu::Capture(NllNpuCaptureState* ctx, const TensorTuple& inputs,
 
   ComposedAttrMap composed_attrs(attrs, base_attrs_);
   ctx->ignore_index = JUST(composed_attrs.GetAttr<int64_t>("ignore_index"));
+  ctx->reduction = JUST(composed_attrs.GetAttr<std::string>("reduction"));
   ctx->SaveTensorForBackward(input);                      // input
   ctx->SaveTensorForBackward(JUST(VectorAt(inputs, 1)));  // target
   ctx->SaveTensorForBackward(outputs.at(1));  // total_weight
@@ -75,12 +77,12 @@ Maybe<void> NllNpu::Apply(const NllNpuCaptureState* ctx, const TensorTuple& out_
 
   if (ctx->SavedTensors().size() == 3) {
     JUST(VectorAt(*in_grads, 0)) =
-        JUST(functional::NLLGradNpu(out_grad, input, target, total_weight, NullOpt, ctx->ignore_index));
+        JUST(functional::NLLGradNpu(out_grad, input, target, total_weight, NullOpt, ctx->ignore_index, ctx->reduction));
   } else {
     // has weight
     auto weight = JUST(VectorAt(ctx->SavedTensors(), 2));
     JUST(VectorAt(*in_grads, 0)) =
-        JUST(functional::NLLGradNpu(out_grad, input, target, total_weight, weight, ctx->ignore_index));
+        JUST(functional::NLLGradNpu(out_grad, input, target, total_weight, weight, ctx->ignore_index, ctx->reduction));
   }
 
   return Maybe<void>::Ok();

@@ -92,7 +92,6 @@ class EagerHcclBroadcastKernel final : public user_op::OpKernel {
     //   CHECK_EQ(in->data_type(), out->data_type());
     //   in_ptr = in->dptr();
     // }
-    std::cout<<"HcclBroadcast Stream "<<ctx->stream()->As<ep::NpuStream>()->npu_stream()<<std::endl;
     // 如果当前是root, 那么out与in的数据地址是一个
     OF_HCCL_CHECK(HcclBroadcast(out->mut_dptr(), out->shape_view().elem_cnt(),
                                 GetHcclDataType(out->data_type()), hccl_root, kernel_cache->comm(),
@@ -129,7 +128,6 @@ class EagerHcclAllReduceKernel final : public user_op::OpKernel {
     CHECK_EQ(in->data_type(), out->data_type());
     HcclReduceOp reduce_type = HCCL_REDUCE_SUM;
     if (in->data_type() == kBool) { reduce_type = HCCL_REDUCE_MAX; }
-    std::cout<<"HcclAllReduce Stream "<<ctx->stream()->As<ep::NpuStream>()->npu_stream()<<std::endl;
     OF_HCCL_CHECK(HcclAllReduce(in->mut_dptr(), out->mut_dptr(), in->shape_view().elem_cnt(),
                                 GetHcclDataType(in->data_type()), reduce_type, kernel_cache->comm(),
                                 ctx->stream()->As<ep::NpuStream>()->npu_stream()));

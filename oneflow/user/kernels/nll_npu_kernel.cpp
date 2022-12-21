@@ -94,7 +94,7 @@ class NllGradKernel final : public user_op::OpKernel {
     user_op::Tensor* total_weight_blob = ctx->Tensor4ArgNameAndIndex("total_weight", 0);
     user_op::Tensor* tmp_buffer = ctx->Tensor4ArgNameAndIndex("tmp_buffer", 0);
     int64_t ignore_index = ctx->Attr<int64_t>("ignore_index");
-    std::string reduction = "mean";//ctx->Attr<std::string>("reduction");
+    std::string reduction = ctx->Attr<std::string>("reduction");
     user_op::Tensor* weight =
         ctx->has_input("weight", 0) ? ctx->Tensor4ArgNameAndIndex("weight", 0) : nullptr;
     if(!weight)
