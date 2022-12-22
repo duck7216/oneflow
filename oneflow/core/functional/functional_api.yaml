@@ -1136,7 +1136,7 @@
   bind_python: False
 
 - name: "nll_grad_npu"
-  signature: "Tensor(Tensor out_grad, Tensor input, Tensor target, Tensor total_weight, Tensor weight=None, Int64 ignore_index=-100, String reduction="mean",) => NLLGradNpu"
+  signature: 'Tensor(Tensor out_grad, Tensor input, Tensor target, Tensor total_weight, Tensor weight=None, Int64 ignore_index=-100, String reduction="mean") => NLLGradNpu'
   bind_python: False
 
 - name: "binary_cross_entropy_loss"
