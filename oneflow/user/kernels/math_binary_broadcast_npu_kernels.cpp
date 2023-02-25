@@ -68,9 +68,9 @@ class MathBinaryBroadcastDivKernel final : public user_op::OpKernel{
                    .Check();
         npu_command.Run()
                .Realease();
-        OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
-        std::cout<<"Div Over"<<std::endl;
-        PrintResult(z);
+        // OF_NPU_CHECK(aclrtSynchronizeStream(ctx->stream()->As<ep::NpuStream>()->npu_stream()));  
+        // std::cout<<"Div Over"<<std::endl;
+        // PrintResult(z);
     } else {
       // For 0-d Tensor
       UNIMPLEMENTED();

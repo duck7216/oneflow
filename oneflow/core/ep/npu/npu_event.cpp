@@ -31,7 +31,9 @@ Maybe<bool> NpuEvent::QueryDone() {
   aclrtEventStatus status;
   aclError err = aclrtQueryEvent(npu_event_,&status);
   if (err == ACL_SUCCESS) {
-    return Maybe<bool>(status == ACL_EVENT_STATUS_COMPLETE);
+    // dck_caution_here
+    // return Maybe<bool>(status == ACL_EVENT_STATUS_COMPLETE);
+    return Maybe<bool>(true);
   }
   else {
     return Error::RuntimeError() << err;

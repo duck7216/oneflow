@@ -150,7 +150,7 @@ void NpuProfInit(std::string path){
 void NpuProfStart(){
   uint32_t deviceIdList[1] = {0};
   acl_prof_config = aclprofCreateConfig(deviceIdList, 1, ACL_AICORE_ARITHMETIC_UTILIZATION, 
-      nullptr,ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_HCCL_TRACE);
+      nullptr,ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_HCCL_TRACE | ACL_PROF_AICPU);
   OF_NPU_CHECK(aclprofStart(acl_prof_config));
 }
 void NpuProfStop(){

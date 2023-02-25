@@ -21,7 +21,7 @@ from oneflow.nn.parameter import Parameter
 
 from .optimizer import Optimizer, ParamGroup
 
-class TORCH_SGD(Optimizer):
+class FUSED_SGD(Optimizer):
     r"""Implements stochastic gradient descent (optionally with momentum).
 
     Nesterov momentum is based on the formula from
@@ -88,7 +88,7 @@ class TORCH_SGD(Optimizer):
         options["momentum"] = momentum
         options["weight_decay"] = weight_decay
 
-        super(TORCH_SGD, self).__init__(params, options)
+        super(FUSED_SGD, self).__init__(params, options)
         for param_group in self.param_groups:
             for param in param_group.parameters:
                 assert param.is_leaf, "parameters must be leaf tensor"
@@ -122,10 +122,9 @@ class TORCH_SGD(Optimizer):
                     d_p = p.grad 
                     if self.loss_scale != 1.0:
                         d_p = d_p * (1/self.loss_scale)
-                        # d_p = d_p / self.loss_scale
                     if weight_decay != 0:
-                        d_p = d_p + weight_decay*p
-                        #  d_p = d_p.add_npu(p, alpha = weight_decay, inplace=False)
+                        # d_p = d_p + weight_decay*p
+                        d_p = d_p.add_npu(p, alpha = weight_decay, inplace=False)
                     if momentum != 0:
                         param_state = self._state[p]
                         if 'momentum_buf' not in param_state:
@@ -134,7 +133,8 @@ class TORCH_SGD(Optimizer):
                             buf = param_state["momentum_buf"]
                             buf.mul_(momentum).add_(d_p)
                         d_p = buf
-                    alpha=-group['lr']
-                    p.add_(alpha*d_p)
+                    p.add_npu(d_p, alpha = -group['lr'], inplace=True)
+                    # alpha=-group['lr']
+                    # p.add_(alpha*d_p)
             self._state["step"] = self._state["step"] + 1
             return loss

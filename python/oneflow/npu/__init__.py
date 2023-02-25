@@ -64,12 +64,14 @@ class profile(object):
             except Exception:
                 raise ValueError("the path of '%s' is invaild."%(self.result_path))
     def __enter__(self):
+        flow.npu.synchronize()
         profiler_result_path = os.path.abspath(self.result_path)
         prof_init(profiler_result_path)
         prof_start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        flow.npu.synchronize()
         prof_stop()
         prof_finalize()
         return False

@@ -163,7 +163,7 @@ class ScalarDivNpuKernel final : public user_op::OpKernel {
 };
 #define REGISTER_SCALAR_DIV_NPU_KERNEL(dtype)                                                   \
   REGISTER_USER_KERNEL("scalar_div")                                                            \
-      .SetCreateFn<ScalarAddNpuKernel<dtype>>()                                                 \
+      .SetCreateFn<ScalarDivNpuKernel<dtype>>()                                                 \
       .SetIsMatchedHob((user_op::HobDeviceType() == DeviceType::kNPU)                           \
                        && (user_op::HobDataType("in", 0) == GetDataType<dtype>::value))         \
       .SetInferTmpSizeFn([](user_op::InferContext* ctx) -> size_t{                              \
