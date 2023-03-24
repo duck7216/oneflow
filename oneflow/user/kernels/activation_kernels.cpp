@@ -497,7 +497,8 @@ REGISTER_USER_KERNEL("tanh_grad")
                 dst->data_type(), 1 /*max_num_dims*/);
           });
     })
-    .SetIsMatchedHob(BinaryPrimitiveExists(ep::primitive::BinaryOp::kTanhBackwardWithDyX, "dx",
+    .SetIsMatchedHob(!(user_op::HobDeviceType() == DeviceType::kNPU)&&
+      BinaryPrimitiveExists(ep::primitive::BinaryOp::kTanhBackwardWithDyX, "dx",
                                            "dy"));
 
 REGISTER_USER_KERNEL("threshold")

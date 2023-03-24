@@ -64,7 +64,7 @@ auto PrimitiveExists() {
 
 REGISTER_USER_KERNEL("bias_add")
     .SetCreateFn<BiasAddUserKernel>()
-    .SetIsMatchedHob(PrimitiveExists() == true)
+    .SetIsMatchedHob(!(user_op::HobDeviceType() == DeviceType::kNPU)&&PrimitiveExists() == true)
     .SetInplaceProposalFn([](const user_op::InferContext& ctx,
                              const user_op::AddInplaceArgPair& AddInplaceArgPairFn) -> Maybe<void> {
       OF_RETURN_IF_ERROR(AddInplaceArgPairFn("out", 0, "a", 0, true));
